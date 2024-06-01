@@ -38,7 +38,9 @@ const Login: React.FC = () => {
           <Link to="/">
             <Brand />
           </Link>
-          <h1 className="font-bold text-lg">Log in to your account</h1>
+          <h1 className="font-bold text-lg text-center">
+            Log in to your account
+          </h1>
           <form
             onSubmit={(e) => handleSubmit(e)}
             className="flex flex-col space-y-2 w-full"
@@ -65,7 +67,7 @@ const Login: React.FC = () => {
           >
             Forgot Password?
           </Link>
-          <div className="flex w-full justify-between items-center gap-5 text-muted-foreground">
+          <div className="flex w-full justify-between items-center text-muted-foreground">
             <Separator className="max-w-[40%] bg-muted-foreground" />
             <p>or</p>
             <Separator className="max-w-[40%] bg-muted-foreground" />

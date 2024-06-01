@@ -5,7 +5,7 @@ import Brand from "../Brand";
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-
+  const username = "@yaashil.s";
   const className =
     "flex-1 transition-all duration-300 ease-in-out hover:bg-accent py-5 md:px-8 hover:scale-105 rounded-lg flex items-center justify-center active:scale-95";
 
@@ -35,7 +35,7 @@ const Navbar: React.FC = () => {
               }
             />
           </Link>
-          <Link to="/" className={className}>
+          {/* <Link to="/" className={className}>
             <Icon
               icon="post"
               className={
@@ -44,20 +44,22 @@ const Navbar: React.FC = () => {
                   : "text-muted"
               }
             />
-          </Link>
-          <Link to="/" className={className}>
+          </Link> */}
+          <Link to="/activity" className={className}>
             <Icon
               icon="heart"
               className={
-                location.pathname === "/likes" ? "fill-secondary" : "text-muted"
+                location.pathname === "/activity"
+                  ? "fill-secondary"
+                  : "text-muted"
               }
             />
           </Link>
-          <Link to="/" className={className}>
+          <Link to={`/${username}`} className={className}>
             <Icon
               icon="user"
               className={
-                location.pathname === "/profile"
+                location.pathname === `/${username}`
                   ? "fill-secondary"
                   : "text-muted"
               }
