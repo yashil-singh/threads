@@ -13,6 +13,12 @@ const strictVerifcation = async (req, res, next) => {
 
     if (!user) return res.error({ status: 404, message: "Account not found." });
 
+    if (user.isFrozen)
+      return res.error({
+        status: 400,
+        message: "Account is freezed. Please login to unfreeze.",
+      });
+
     req.user = user;
 
     next();
