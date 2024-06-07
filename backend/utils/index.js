@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 export const hashPassword = async (password) => {
   try {
@@ -9,6 +10,14 @@ export const hashPassword = async (password) => {
     console.log("🚀 ~ hashpassword error:", error);
     return null;
   }
+};
+
+export const generateRandomString = (length) => {
+  return crypto
+    .randomBytes(length)
+    .toString("base64")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .substring(0, length);
 };
 
 export const verifyPassword = async ({ currentPassword, password }) => {

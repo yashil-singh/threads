@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../database/models/users.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // GET Requets
 export const getUser = async (req, res) => {
@@ -50,6 +51,28 @@ export const getFollowers = async (req, res) => {
   }
 };
 
+export const getFollowersById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    if (!userId) return res.error({ message: "Invalid request." });
+
+    const user = await User.findById(userId).populate(
+      "followers",
+      "_id name username profilePic isPrivate followers following requestReceived requestSent"
+    );
+
+    if (!user) return res.error({ status: 404, message: "Account not found." });
+
+    const followers = user?.followers;
+
+    res.success({ data: followers });
+  } catch (error) {
+    console.log("🚀 ~ error userController:", error);
+    res.error({ status: 500, error });
+  }
+};
+
 export const getFollowing = async (req, res) => {
   try {
     const currentUserId = req.user._id;
@@ -59,6 +82,28 @@ export const getFollowing = async (req, res) => {
       return res.error({ status: 404, message: "Account not found." });
 
     const following = currentUser.following;
+
+    res.success({ data: following });
+  } catch (error) {
+    console.log("🚀 ~ error userController:", error);
+    res.error({ status: 500, error });
+  }
+};
+
+export const getFollowingById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    if (!userId) return res.error({ message: "Invalid request." });
+
+    const user = await User.findById(userId).populate(
+      "following",
+      "_id name username profilePic isPrivate followers following requestReceived requestSent"
+    );
+
+    if (!user) return res.error({ status: 404, message: "Account not found." });
+
+    const following = user?.following;
 
     res.success({ data: following });
   } catch (error) {
@@ -117,6 +162,23 @@ export const getSuggestedUsers = async (req, res) => {
     console.log("🚀 ~ suggested user userController:", error);
 
     res.error({ error, status: 500 });
+  }
+};
+
+export const searchProfile = async (req, res) => {
+  try {
+    const query = req.query.query;
+
+    // Create a regular expression for case-insensitive, partial match
+    const regex = new RegExp(query, "i");
+
+    const users = await User.find({
+      $or: [{ username: { $regex: regex } }, { name: { $regex: regex } }],
+    }).select("_id name username profilePic");
+
+    res.success({ data: users });
+  } catch (error) {
+    return res.error({ error, status: 500 });
   }
 };
 
@@ -281,14 +343,10 @@ export const toggleRequest = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { name, username, bio, isPrivate } = req.body;
+
     let { profilePic } = req.body;
+
     const userId = req.user?._id.toString();
-
-    const updatingUserId = req.query.id;
-
-    // Validate the request
-    if (!userId || updatingUserId !== userId)
-      return res.error({ message: "Invalid request.", status: 401 });
 
     // Find current user
     let user = await User.findById(userId).select("-password");
@@ -303,12 +361,32 @@ export const updateUser = async (req, res) => {
       });
 
     // Handle Profile Pic
-    if (profilePic) {
+    if (profilePic && !profilePic.includes("https://res.cloudinary.com")) {
       if (user.profilePic) {
-        // delete previous pp
+        await cloudinary.uploader.destroy(
+          user.profilePic.split("/").pop().split(".")[0]
+        );
       }
 
-      // upload pic and get url
+      const uploadedResponse = await cloudinary.uploader.upload(profilePic);
+      profilePic = uploadedResponse.secure_url;
+    }
+
+    if (user.isPrivate && !isPrivate) {
+      // If profile was private and changed to public, accept all requests
+      const pendingRequests = user.requestReceived;
+
+      // Move all pending requests to the followers array
+      user.followers = [...user.followers, ...pendingRequests];
+
+      // Clear the requestReceived array
+      user.requestReceived = [];
+
+      // You may want to update the following list of the users who sent requests
+      await User.updateMany(
+        { _id: { $in: pendingRequests } },
+        { $push: { following: user._id } }
+      );
     }
 
     // Update User Fields
@@ -316,7 +394,8 @@ export const updateUser = async (req, res) => {
     user.username = username || user.username;
     user.profilePic = profilePic || user.profilePic;
     user.bio = bio || user.bio;
-    user.isPrivate = isPrivate || user.isPrivate;
+    user.isPrivate = isPrivate;
+
     user = await user.save();
 
     res.success({ message: "Profile updated successfully.", data: user });

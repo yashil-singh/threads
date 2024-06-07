@@ -4,9 +4,11 @@ import Navbar from "./Navbar";
 
 const Layout: React.FC = () => {
   return (
-    <div className="2xl:mx-[18%]">
+    <div className="md:mx-[10%] 2xl:mx-[18%]">
       <Navbar />
-      <Outlet />
+      <div className="pb-5 md:pt-8 w-full max-w-[600px] m-auto">
+        <Outlet />
+      </div>
     </div>
   );
 };

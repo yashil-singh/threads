@@ -6,10 +6,26 @@ import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import Icon from "@/components/Icon";
 import Brand from "@/components/Brand";
+import useAuth from "@/hooks/useAuth";
+import useShowToast from "@/hooks/useShowToast";
+import { Loader } from "@/components/Loader";
+import { useSetRecoilState } from "recoil";
+import { userAtom } from "@/atoms/userAtom";
+import { BASE_URL } from "@/helpers/constants";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const setUser = useSetRecoilState(userAtom);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { login } = useAuth();
+  const { showToast } = useShowToast();
+
+  const resetFields = () => {
+    setUsername("");
+    setPassword("");
+  };
 
   const emptyFields = () => {
     if (username.trim().length === 0 || password.trim().length === 0) {
@@ -19,9 +35,29 @@ const Login: React.FC = () => {
     return false;
   };
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    setIsSubmitting(true);
     e.preventDefault();
-    console.log("SUBMITTED");
+    const response = await login({ username, password });
+
+    if (response.success) {
+      const data = response?.data;
+      showToast({ title: data.message });
+      setUser(data.data);
+      resetFields();
+    } else {
+      const errors = response?.errors;
+
+      errors.map((error: string) =>
+        showToast({ title: error, variant: "destructive" })
+      );
+    }
+
+    setIsSubmitting(false);
+  };
+
+  const handleGoogleSignin = () => {
+    window.location.href = `${BASE_URL}/auth/google/callback`;
   };
 
   return (
@@ -50,15 +86,20 @@ const Login: React.FC = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isSubmitting}
             />
             <Input
               placeholder="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isSubmitting}
             />
-            <Button className="h-[56px]" disabled={emptyFields()}>
-              Log in
+            <Button
+              className="h-[56px]"
+              disabled={emptyFields() || isSubmitting}
+            >
+              {isSubmitting ? <Loader /> : <p>Log in</p>}
             </Button>
           </form>
           <Link
@@ -72,7 +113,12 @@ const Login: React.FC = () => {
             <p>or</p>
             <Separator className="max-w-[40%] bg-muted-foreground" />
           </div>
-          <Button variant="outline" className="w-full h-[56px]">
+          <Button
+            variant="outline"
+            className="w-full h-[56px]"
+            disabled={isSubmitting}
+            onClick={handleGoogleSignin}
+          >
             <Icon icon="google" className="mr-4" />
             Continue with Google
           </Button>

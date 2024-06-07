@@ -3,11 +3,14 @@ import {
   deleteAccount,
   freezeAccount,
   getFollowers,
+  getFollowersById,
   getFollowing,
+  getFollowingById,
   getFollowRequests,
   getSuggestedUsers,
   getUser,
   removeFollower,
+  searchProfile,
   toggleFollow,
   toggleRequest,
   updateUser,
@@ -23,9 +26,12 @@ router.post("/toggle-request/:id", strictVerification, toggleRequest);
 // GET Requests
 router.get("/profile/:query", getUser);
 router.get("/followers", strictVerification, getFollowers);
+router.get("/followers/:id", strictVerification, getFollowersById);
 router.get("/following", strictVerification, getFollowing);
+router.get("/following/:id", strictVerification, getFollowingById);
 router.get("/requests", strictVerification, getFollowRequests);
 router.get("/suggested", strictVerification, getSuggestedUsers);
+router.get("/search", searchProfile);
 
 // PUT Requests
 router.put("/update", strictVerification, updateUser);

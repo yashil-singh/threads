@@ -14,22 +14,22 @@
     --popover-foreground: 210 20% 96%;
 
     --primary: 0 0% 100%;
-    --primary-foreground: 0, 0%, 6%;
+    --primary-foreground: 0, 0%, 8%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 0 0% 30%;
+    --muted: 0, 0%, 8%;
     --muted-foreground: 0 0% 47%;
 
-    --accent: 0 0% 11%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 30%;
+    --accent-foreground: 210 20% 96%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0, 0%, 6%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 22%;
-    --input: 0 0% 30%;
+    --input: 0 0% 12%;
     --ring: 0 0% 25%;
 
     --radius: 0.8rem;
@@ -73,4 +73,25 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+h1 {
+  font-weight: bold;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color: #222324;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #646566;
+  border-radius: 10px;
 }

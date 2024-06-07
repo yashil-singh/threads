@@ -1,12 +1,45 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import Search from "./pages/Search";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Activity from "./pages/Activity";
 import Profile from "./pages/Profile";
+import { useRecoilState } from "recoil";
+import { userAtom } from "@/atoms/userAtom";
+import { useEffect, useState } from "react";
+import useAuth from "./hooks/useAuth";
+import { Loader } from "./components/Loader";
+import NotFound from "./pages/NotFound";
+import Username from "./pages/Username";
 
 function App() {
+  const [user, setUser] = useRecoilState(userAtom);
+  const [isLoading, setisLoading] = useState(true);
+
+  const { checkSession } = useAuth();
+
+  const checkUserSession = async () => {
+    const response = await checkSession();
+
+    if (response.success) {
+      setUser(response.data.data);
+    }
+
+    setisLoading(false);
+  };
+
+  useEffect(() => {
+    checkUserSession();
+  }, []);
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center w-full h-screen">
+        <Loader />
+      </div>
+    );
+
   return (
     <BrowserRouter>
       <Routes>
@@ -14,9 +47,14 @@ function App() {
           <Route index element={<Home />} />
           <Route path="search" element={<Search />} />
           <Route path="activity" element={<Activity />} />
-          <Route path=":username" element={<Profile />} />
+          <Route path="/:username" element={<Profile />} />
+          <Route
+            path="/google-signup/:username"
+            element={user ? <Navigate to="/" /> : <Username />}
+          />
+          <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="login" element={<Login />} />
+        <Route path="login" element={user ? <Navigate to="/" /> : <Login />} />
       </Routes>
     </BrowserRouter>
   );
