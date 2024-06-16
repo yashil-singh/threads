@@ -22,7 +22,7 @@
     --muted: 0, 0%, 8%;
     --muted-foreground: 0 0% 47%;
 
-    --accent: 0 0% 30%;
+    --accent: 0 0% 15%;
     --accent-foreground: 210 20% 96%;
 
     --destructive: 0 84.2% 60.2%;
@@ -94,4 +94,34 @@ h1 {
 ::-webkit-scrollbar-thumb {
   background: #646566;
   border-radius: 10px;
+}
+
+@keyframes likeAdded {
+  0% {
+    transform: translateY(20%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes likeRemoved {
+  0% {
+    transform: translateY(-20%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.like-added {
+  animation: likeAdded 0.5s ease-in-out;
+}
+
+.like-removed {
+  animation: likeRemoved 0.5s ease-in-out;
 }

@@ -1,15 +1,13 @@
 import { userAtom } from "@/atoms/userAtom";
+import ContentModal from "@/components/ContentModal";
 import CreatePost from "@/components/CreatePost";
 import CreatePostButton from "@/components/CreatePostButton";
-import { Loader } from "@/components/Loader";
-import Post from "@/components/Post";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogOverlay,
-} from "@/components/ui/dialog";
+import PostCard from "@/components/PostCard";
+import PostSkeleton from "@/components/skeleton/PostSkeleton";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PostType } from "@/helpers/types";
 import usePosts from "@/hooks/usePosts";
 import useShowToast from "@/hooks/useShowToast";
 import React, { useEffect, useState } from "react";
@@ -17,53 +15,84 @@ import { useRecoilValue } from "recoil";
 
 const Home: React.FC = () => {
   const user = useRecoilValue(userAtom);
-  const { getPosts, postThread } = usePosts();
+  const { getPosts, postThread, deleteThread } = usePosts();
   const { showToast } = useShowToast();
 
   const [content, setContent] = useState<string>("");
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<PostType[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isPosting, setIsPosting] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openImageModal, setOpenImageModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedMedia, setSelectedMedia] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
+  // To open the create post modal
   const onOpenCreateModal = () => {
     if (user) {
       setOpenCreateModal(true);
     }
   };
 
-  const onOpenImageModal = (imageUrl: string, e) => {
-    e.preventDefault();
+  // To open post images
+  const onOpenImageModal = (media) => {
     setOpenImageModal(true);
-    setSelectedImage(imageUrl);
+    setSelectedMedia(media);
   };
 
+  // To post thread
   const onPostThread = async () => {
-    const response = await postThread(content);
+    setIsPosting(true);
+    const response = await postThread(content, selectedFiles);
     if (response.success) {
       showToast({
         description: response.data.message,
       });
       setOpenCreateModal(false);
       setContent("");
+      setSelectedFiles([]);
       fetchPosts();
     } else {
       const errors = response?.errors;
-      errors.map((error) => {
+      errors.map((error: string) => {
         showToast({
           variant: "destructive",
           description: error,
         });
       });
     }
+    setIsPosting(false);
   };
 
+  const onDeletePost = async (postId: string) => {
+    const response = await deleteThread(postId);
+
+    if (response.success) {
+      const data = response.data;
+      showToast({
+        description: data.message,
+      });
+      fetchPosts();
+    } else {
+      const errors = response.errors;
+
+      errors.map((error: string) => {
+        showToast({
+          description: error,
+          variant: "destructive",
+        });
+      });
+    }
+  };
+
+  // To fetch all posts
   const fetchPosts = async () => {
     const response = await getPosts();
+
     if (response.success) {
       const data = response?.data;
+
       setPosts(data.data);
     }
     setIsLoading(false);
@@ -72,6 +101,13 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  // To reset create post fields
+  useEffect(() => {
+    if (!openCreateModal) {
+      setSelectedFiles([]);
+    }
+  }, [openCreateModal]);
 
   return (
     <>
@@ -94,6 +130,9 @@ const Home: React.FC = () => {
                   content={content}
                   setContent={setContent}
                   onPostThread={onPostThread}
+                  selectedFile={selectedFiles}
+                  setSelectedFile={setSelectedFiles}
+                  isSubmitting={isPosting}
                 />
               </DialogContent>
             </Dialog>
@@ -102,40 +141,42 @@ const Home: React.FC = () => {
 
         <Separator />
 
+        {/* Posts */}
         <div className="w-full relative min-h-[calc(100vh-250px)] py-5 space-y-5">
           {isLoading ? (
-            <div className="absolute top-1/2 left-1/2">
-              <Loader size={32} stroke={2} />
+            <div className="flex flex-col gap-8">
+              <PostSkeleton />
+              <Skeleton className="w-full h-1" />
+              <PostSkeleton />
+              <Skeleton className="w-full h-1" />
+              <PostSkeleton />
+              <Skeleton className="w-full h-1" />
+              <PostSkeleton />
+              <Skeleton className="w-full h-1" />
             </div>
           ) : (
             posts.map((post) => (
-              <>
-                <Post
-                  _id={post?._id}
-                  content={post?.content}
-                  userId={post.userId}
-                  createdAt={post.createdAt}
-                  likes={post.likes}
-                  replies={post.replies}
-                  media={post.media}
-                  updatedAt={post.updatedAt}
-                  onOpenImageModal={onOpenImageModal}
-                />
-                <Separator />
-                <Dialog open={openImageModal} onOpenChange={setOpenImageModal}>
-                  <DialogContent className="bg-transparent border-none max-w-full h-screen close-btn">
-                    <img
-                      src={selectedImage}
-                      className="rounded-lg object-contain m-auto md:max-w-[80%]"
-                    />
-                  </DialogContent>
-                </Dialog>
-              </>
+              <PostCard
+                _id={post?._id}
+                content={post?.content}
+                userId={post.userId}
+                createdAt={post.createdAt}
+                likes={post.likes}
+                replies={post.replies}
+                reposts={post.reposts}
+                media={post.media}
+                updatedAt={post.updatedAt}
+                onOpenImageModal={() => onOpenImageModal(post.media)}
+                onDeletePost={() => onDeletePost(post?._id)}
+              />
             ))
           )}
+          <Dialog open={openImageModal} onOpenChange={setOpenImageModal}>
+            <DialogContent className="bg-black border-none max-w-full h-screen close-btn">
+              <ContentModal media={selectedMedia} />
+            </DialogContent>
+          </Dialog>
         </div>
-
-        {/* Posts */}
       </main>
     </>
   );

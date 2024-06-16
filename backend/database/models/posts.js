@@ -1,6 +1,29 @@
 import mongoose from "mongoose";
 
-const postSchema = mongoose.Schema(
+const replySchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    userProfilePic: {
+      type: String,
+    },
+    username: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true, // Enable timestamps for replies
+  }
+);
+
+const postSchema = new mongoose.Schema(
   {
     content: {
       type: String,
@@ -10,33 +33,21 @@ const postSchema = mongoose.Schema(
         mediaUrl: {
           type: String,
         },
-      },
-    ],
-    replies: [
-      {
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        content: {
-          type: String,
-          required: true,
-        },
-        userProfilePic: {
-          type: String,
-        },
-        username: {
+        type: {
           type: String,
         },
       },
     ],
+    replies: [replySchema],
     likes: {
-      type: Number,
-      default: 0,
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
     },
     reposts: {
-      type: Number,
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

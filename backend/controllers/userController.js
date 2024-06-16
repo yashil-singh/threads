@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import User from "../database/models/users.js";
 import { v2 as cloudinary } from "cloudinary";
+import { getRecipientSocketId, io } from "../socket/socket.js";
+import Notification from "../database/models/notifications.js";
 
 // GET Requets
 export const getUser = async (req, res) => {
@@ -188,6 +190,8 @@ export const toggleFollow = async (req, res) => {
     const userId = req.params?.id;
     const currentUserId = req.user._id.toString();
 
+    const recipientSocketId = getRecipientSocketId(userId);
+
     if (!userId)
       return res.error({
         message: "Invalid request. The user to modify is required.",
@@ -218,6 +222,12 @@ export const toggleFollow = async (req, res) => {
       });
 
       message = "Account Unfollowed.";
+
+      await Notification.findOneAndDelete({
+        recipientId: userToInteract._id,
+        userId: currentUser._id,
+        message: `${req.user.username} followed you.`,
+      });
     } else {
       if (userToInteract.isPrivate) {
         const isRequested =
@@ -253,6 +263,19 @@ export const toggleFollow = async (req, res) => {
         });
 
         message = "Account Followed.";
+
+        const newNotification = new Notification({
+          message: `${req.user.username} followed you.`,
+          recipientId: userToInteract._id,
+          profilePic: currentUser.profilePic,
+          userId: currentUser._id,
+        });
+
+        await newNotification.save();
+
+        if (recipientSocketId) {
+          io.to(recipientSocketId).emit("receiveNotification", newNotification);
+        }
       }
     }
 

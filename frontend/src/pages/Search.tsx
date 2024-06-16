@@ -50,7 +50,7 @@ const Search: React.FC = () => {
   return (
     <div className="space-y-5">
       <span className="relative">
-        <SearchIcon className="text-accent absolute left-4 top-5 size-5" />
+        <SearchIcon className="text-muted-foreground absolute left-4 top-5 size-5" />
         <Input
           type="text"
           placeholder="Search"

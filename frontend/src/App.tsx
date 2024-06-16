@@ -12,6 +12,7 @@ import useAuth from "./hooks/useAuth";
 import { Loader } from "./components/Loader";
 import NotFound from "./pages/NotFound";
 import Username from "./pages/Username";
+import Post from "./pages/Post";
 
 function App() {
   const [user, setUser] = useRecoilState(userAtom);
@@ -36,7 +37,7 @@ function App() {
   if (isLoading)
     return (
       <div className="flex justify-center items-center w-full h-screen">
-        <Loader />
+        <Loader size={32} stroke={2} />
       </div>
     );
 
@@ -46,6 +47,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="search" element={<Search />} />
+          <Route path="/post/:postId" element={<Post />} />
           <Route path="activity" element={<Activity />} />
           <Route path="/:username" element={<Profile />} />
           <Route

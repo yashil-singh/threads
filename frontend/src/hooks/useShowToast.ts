@@ -14,7 +14,7 @@ const useShowToast = () => {
     title = "",
     description,
     variant = "default",
-    duration = 3000,
+    duration = 2000,
   }: ShowToastProps) => {
     toast({
       title,

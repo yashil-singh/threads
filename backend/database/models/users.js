@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -54,6 +54,11 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reposts: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Post",
+      default: [],
+    },
     isFrozen: {
       type: Boolean,
       default: false,
@@ -88,13 +93,13 @@ userSchema.pre("findOneAndDelete", async function (next) {
           { requestReceived: userId },
           { $pull: { requestReceived: userId } }
         ),
-      // mongoose.model("Post").deleteMany({ user: userId }),
-      // mongoose
-      //   .model("Post")
-      //   .updateMany(
-      //     { "replies.user": userId },
-      //     { $pull: { replies: { user: userId } } }
-      //   ),
+      mongoose.model("Post").deleteMany({ userId: userId }),
+      mongoose
+        .model("Post")
+        .updateMany(
+          { "replies.userId": userId },
+          { $pull: { replies: { userId: userId } } }
+        ),
     ]);
 
     next();

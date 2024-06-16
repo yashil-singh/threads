@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { FormEvent, useState } from "react";
 import LoginImage from "@/assets/login.png";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,10 @@ import Icon from "@/components/Icon";
 import Brand from "@/components/Brand";
 import useAuth from "@/hooks/useAuth";
 import useShowToast from "@/hooks/useShowToast";
-import { Loader } from "@/components/Loader";
 import { useSetRecoilState } from "recoil";
 import { userAtom } from "@/atoms/userAtom";
 import { BASE_URL } from "@/helpers/constants";
+import SubmitBtn from "@/components/SubmitBtn";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
     return false;
   };
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
     e.preventDefault();
     const response = await login({ username, password });
@@ -95,12 +95,14 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               disabled={isSubmitting}
             />
-            <Button
+            <SubmitBtn
               className="h-[56px]"
-              disabled={emptyFields() || isSubmitting}
-            >
-              {isSubmitting ? <Loader /> : <p>Log in</p>}
-            </Button>
+              isSubmitting={isSubmitting}
+              isDisabled={emptyFields()}
+              text="Log in"
+              onClick={handleSubmit}
+              size={28}
+            />
           </form>
           <Link
             to="/forgot-password"

@@ -15,6 +15,9 @@ interface SubmitBtnProps {
     | "secondary";
 
   className?: string;
+  isDisabled?: boolean;
+  size?: number;
+  stroke?: number;
 }
 
 const SubmitBtn: React.FC<SubmitBtnProps> = ({
@@ -23,15 +26,18 @@ const SubmitBtn: React.FC<SubmitBtnProps> = ({
   onClick,
   variant,
   className,
+  isDisabled,
+  size,
+  stroke = 2,
 }) => {
   return (
     <Button
       className={className}
-      disabled={isSubmitting}
+      disabled={isSubmitting || isDisabled}
       onClick={onClick}
       variant={variant}
     >
-      {isSubmitting ? <Loader /> : text}
+      {isSubmitting ? <Loader stroke={stroke} size={size} /> : text}
     </Button>
   );
 };

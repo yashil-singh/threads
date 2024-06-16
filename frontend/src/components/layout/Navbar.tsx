@@ -13,15 +13,25 @@ import {
 import useAuth from "@/hooks/useAuth";
 import useShowToast from "@/hooks/useShowToast";
 import { Ellipsis } from "lucide-react";
+import { newNotificationAtom } from "@/atoms/notificationAtom";
+import useNotification from "@/hooks/useNotification";
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const [user, setUser] = useRecoilState(userAtom);
+  const [newNotification, setNewNotification] =
+    useRecoilState(newNotificationAtom);
 
   const navigate = useNavigate();
 
   const { logout } = useAuth();
   const { showToast } = useShowToast();
+  const { readAllNotification } = useNotification();
+
+  const onReadNotification = async () => {
+    const response = await readAllNotification();
+    if (response.success) setNewNotification(false);
+  };
 
   const onLogout = async () => {
     const response = await logout();
@@ -67,7 +77,15 @@ const Navbar: React.FC = () => {
               }
             />
           </Link>
-          <Link to={user ? "/activity" : "/login"} className={className}>
+          <Link
+            to={user ? "/activity" : "/login"}
+            className={className}
+            onClick={onReadNotification}
+          >
+            {newNotification && (
+              <span className="size-1 bg-red-500 rounded-full absolute bottom-3"></span>
+            )}
+            {}
             <Icon
               icon="heart"
               className={
@@ -102,12 +120,6 @@ const Navbar: React.FC = () => {
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger className="absolute right-5 top-6 cursor-pointer">
-              {/* <ProfileImg
-                fallBackText={user.username.charAt(0)}
-                url={user.profilePic}
-                width={40}
-                height={40}
-              /> */}
               <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="absolute -right-4 min-w-[200px] font-bold p-3">

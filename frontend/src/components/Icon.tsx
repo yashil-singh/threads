@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import React from "react";
 
-const iconVariants = cva("inline-block size-8", {
+const iconVariants = cva("flex size-6 transition-all duration-150", {
   variants: {
     icon: {
       home: "home",
@@ -14,6 +14,8 @@ const iconVariants = cva("inline-block size-8", {
       images: "images",
       remove: "remove",
       comment: "comment",
+      repost: "repost",
+      trash: "trash",
     },
     size: {
       default: "size-6",
@@ -35,12 +37,13 @@ export interface IconProps
 
 const Icon: React.FC<IconProps> = ({ icon, size, className }) => {
   return (
-    <span>
+    <>
       {icon === "home" && (
         <svg
           aria-label="Home"
           role="img"
           viewBox="0 0 26 26"
+          fill="transparent"
           className={cn(iconVariants({ size, className }))}
         >
           <title>Home</title>
@@ -93,12 +96,11 @@ const Icon: React.FC<IconProps> = ({ icon, size, className }) => {
       )}
       {icon === "heart" && (
         <svg
-          aria-label="Notifications"
           role="img"
           viewBox="0 0 26 26"
+          fill="transparent"
           className={cn(iconVariants({ size, className }))}
         >
-          <title>Notifications</title>
           <path
             d="M2.5 9.85683C2.5 14.224 6.22178 18.5299 12.0332 22.2032C12.3554 22.397 12.7401 22.5909 13 22.5909C13.2703 22.5909 13.655 22.397 13.9668 22.2032C19.7782 18.5299 23.5 14.224 23.5 9.85683C23.5 6.11212 20.8698 3.5 17.4599 3.5C15.4847 3.5 13.9356 4.39792 13 5.74479C12.0851 4.40812 10.5257 3.5 8.5401 3.5C5.14059 3.5 2.5 6.11212 2.5 9.85683Z"
             stroke="currentColor"
@@ -110,6 +112,7 @@ const Icon: React.FC<IconProps> = ({ icon, size, className }) => {
         <svg
           aria-label="Profile"
           role="img"
+          fill="transparent"
           viewBox="0 0 26 26"
           className={cn(iconVariants({ size, className }))}
         >
@@ -181,9 +184,9 @@ const Icon: React.FC<IconProps> = ({ icon, size, className }) => {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className={cn(iconVariants({ size, className }))}
         >
           <path d="M18 6 6 18" />
@@ -195,17 +198,64 @@ const Icon: React.FC<IconProps> = ({ icon, size, className }) => {
           aria-label="Reply"
           role="img"
           viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
           className={cn(iconVariants({ size, className }))}
         >
           <title>Reply</title>
           <path
             d="M15.376 13.2177L16.2861 16.7955L12.7106 15.8848C12.6781 15.8848 12.6131 15.8848 12.5806 15.8848C11.3779 16.5678 9.94767 16.8931 8.41995 16.7955C4.94194 16.5353 2.08152 13.7381 1.72397 10.2578C1.2689 5.63919 5.13697 1.76863 9.75264 2.22399C13.2307 2.58177 16.0261 5.41151 16.2861 8.92429C16.4161 10.453 16.0586 11.8841 15.376 13.0876C15.376 13.1526 15.376 13.1852 15.376 13.2177Z"
-            stroke-linejoin="round"
-            stroke-width="1.25"
+            strokeLinejoin="round"
+            strokeWidth="1.25"
           ></path>
         </svg>
       )}
-    </span>
+      {icon === "repost" && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={cn(iconVariants({ size, className }))}
+          aria-label="Repost"
+        >
+          <title>Repost</title>
+          <path d="m2 9 3-3 3 3" />
+          <path d="M13 18H7a2 2 0 0 1-2-2V6" />
+          <path d="m22 15-3 3-3-3" />
+          <path d="M11 6h6a2 2 0 0 1 2 2v10" />
+        </svg>
+      )}
+      {icon === "trash" && (
+        <svg
+          aria-label="Delete"
+          role="img"
+          viewBox="0 0 20 20"
+          className={cn(iconVariants({ size, className }))}
+        >
+          <title>Delete</title>
+          <path
+            d="M6.75 3.5V2.5C6.75 1.67157 7.42157 1 8.25 1H11.75C12.5784 1 13.25 1.67157 13.25 2.5V3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="1.5"
+          ></path>
+          <path
+            d="M3.75 4L4.54449 15.5202C4.61689 16.57 4.6531 17.0949 4.88062 17.4928C5.08095 17.8431 5.38256 18.1246 5.74584 18.3004C6.15846 18.5 6.68461 18.5 7.73691 18.5H12.2631C13.3154 18.5 13.8415 18.5 14.2542 18.3004C14.6174 18.1246 14.9191 17.8431 15.1194 17.4928C15.3469 17.0949 15.3831 16.57 15.4555 15.5202L16.25 4M3.75 4H16.25M3.75 4H1.75M16.25 4H18.25"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-width="1.5"
+          ></path>
+        </svg>
+      )}
+    </>
   );
 };
 

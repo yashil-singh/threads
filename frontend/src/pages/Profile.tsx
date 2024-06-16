@@ -12,6 +12,14 @@ import seperateUsername from "@/helpers/seperateUsername";
 import NotFound from "./NotFound";
 import SubmitBtn from "@/components/SubmitBtn";
 import EditProfile from "@/components/EditProfile";
+import { formatNumber } from "@/helpers/formatNumber";
+import usePosts from "@/hooks/usePosts";
+import { PostType } from "@/helpers/types";
+import { Separator } from "@/components/ui/separator";
+import PostCard from "@/components/PostCard";
+import { Loader } from "@/components/Loader";
+import PostSkeleton from "@/components/skeleton/PostSkeleton";
+import ContentModal from "@/components/ContentModal";
 
 interface Profile {
   _id: string;
@@ -37,6 +45,7 @@ const Profile: React.FC = () => {
   // Hooks
   const { getProfile, getFollowerById, getFollowingById, followAccount } =
     useUsers();
+  const { getPostByUserId } = usePosts();
   const navigate = useNavigate();
 
   // Page related States
@@ -57,6 +66,7 @@ const Profile: React.FC = () => {
   });
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [posts, setPosts] = useState<PostType[]>([]);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   // Loading States
@@ -69,6 +79,8 @@ const Profile: React.FC = () => {
     "follower"
   );
   const [openEditModal, setOpenEditModal] = useState(false);
+  const [openImageModal, setOpenImageModal] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState([]);
 
   const checkFollowing = () => {
     if (isCurrentUser) return true;
@@ -112,8 +124,6 @@ const Profile: React.FC = () => {
     if (response.success) {
       setProfile(response?.data.data);
     }
-
-    setIsLoading(false);
   };
 
   const fetchFollowers = async () => {
@@ -136,9 +146,24 @@ const Profile: React.FC = () => {
     }
   };
 
+  const fetchPosts = async () => {
+    if (profile?._id) {
+      const response = await getPostByUserId(profile?._id);
+
+      if (response.success) {
+        setPosts(response.data.data);
+      }
+    }
+  };
+
   useEffect(() => {
+    setIsLoading(true);
+
     fetchFollowers();
     fetchFollowing();
+    fetchPosts();
+
+    setIsLoading(false);
   }, [profile]);
 
   useEffect(() => {
@@ -153,7 +178,7 @@ const Profile: React.FC = () => {
     }
   }, [username]);
 
-  if (!username || (!profile?._id && !isLoading)) return <NotFound />;
+  if (!username) return <NotFound />;
 
   return (
     <>
@@ -200,14 +225,14 @@ const Profile: React.FC = () => {
               className="hover:underline"
               onClick={() => onOpenFollowerCard("follower")}
             >
-              {profile?.followers?.length} Followers
+              {formatNumber(profile?.followers?.length)} Followers
             </button>
             ·
             <button
               className="hover:underline"
               onClick={() => onOpenFollowerCard("following")}
             >
-              {profile?.following?.length} Following
+              {formatNumber(profile?.following?.length)} Following
             </button>
             <DialogContent className="bg-transparent border-0 p-0 min-h-[350px]">
               <FollowerCard
@@ -274,7 +299,40 @@ const Profile: React.FC = () => {
         ) : (
           <></>
         )}
+
+        <Separator />
+
+        {isLoading ? (
+          <div className="space-y-8">
+            <PostSkeleton />
+            <PostSkeleton />
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              _id={post._id}
+              content={post.content}
+              createdAt={post.createdAt}
+              likes={post.likes}
+              media={post.media}
+              onOpenImageModal={() => {
+                setOpenImageModal(true);
+                setSelectedMedia(post.media);
+              }}
+              replies={post.replies}
+              reposts={post.reposts}
+              updatedAt={post.updatedAt}
+              userId={post.userId}
+            />
+          ))
+        )}
       </div>
+
+      <Dialog open={openImageModal} onOpenChange={setOpenImageModal}>
+        <DialogContent className="bg-black border-none max-w-full h-screen close-btn">
+          <ContentModal media={selectedMedia} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

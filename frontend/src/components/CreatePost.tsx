@@ -1,13 +1,14 @@
 import React, { ChangeEvent, useRef, useState } from "react";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import ProfileImg from "./ProfileImg";
-import { Button } from "./ui/button";
 import Icon from "./Icon";
 import { Input } from "./ui/input";
 import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
 import { Link } from "react-router-dom";
+import { Skeleton } from "./ui/skeleton";
+import SubmitBtn from "./SubmitBtn";
 
 interface CreatePostProps {
   username: string;
@@ -15,6 +16,9 @@ interface CreatePostProps {
   content: string;
   onPostThread: () => void;
   setContent: (value: string) => void;
+  selectedFile: string[];
+  setSelectedFile: (value: string[]) => void;
+  isSubmitting: boolean;
 }
 
 const CreatePost: React.FC<CreatePostProps> = ({
@@ -23,26 +27,34 @@ const CreatePost: React.FC<CreatePostProps> = ({
   content,
   onPostThread,
   setContent,
+  selectedFile,
+  setSelectedFile,
+  isSubmitting,
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [selectedFiles, setSelectedFiles] = useState<
-    { file: File; url: string }[]
-  >([]);
+  const [isFileLoading, setIsFileLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      const file = files[0];
-      const url = URL.createObjectURL(file);
-      setSelectedFiles((prevFiles) => [...prevFiles, { file, url }]);
-      if (fileRef.current) {
-        fileRef.current.value = "";
-      }
+    setIsFileLoading(true);
+    const file = e.target?.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setSelectedFile((prev) => [result, ...prev]);
+        setIsFileLoading(false);
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      setIsFileLoading(false);
     }
   };
 
   const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prevFiles) => {
+    setSelectedFile((prevFiles) => {
       const newFiles = [...prevFiles];
       const removedFile = newFiles.splice(index, 1);
       URL.revokeObjectURL(removedFile[0].url);
@@ -91,12 +103,12 @@ const CreatePost: React.FC<CreatePostProps> = ({
                 />
                 <Carousel className="flex mt-2 pr-1 cursor-grab active:cursor-grabbing">
                   <CarouselContent>
-                    {selectedFiles.map((item, index) => (
+                    {selectedFile?.map((item, index) => (
                       <>
                         <CarouselItem
                           className={cn(
                             "flex items-center",
-                            selectedFiles.length > 1 && "basis-5/6"
+                            selectedFile.length > 1 && "basis-5/6"
                           )}
                           key={index}
                         >
@@ -110,15 +122,15 @@ const CreatePost: React.FC<CreatePostProps> = ({
                                 className="size-7 bg-background/50 rounded-full p-1"
                               />
                             </button>
-                            {item.file.type.startsWith("image/") ? (
+                            {item.split(":")[1].startsWith("image/") ? (
                               <img
-                                src={item.url}
+                                src={item}
                                 alt={`preview-${index}`}
                                 className="rounded-lg min-h-[250px] object-cover"
                               />
                             ) : (
                               <video
-                                src={item.url}
+                                src={item}
                                 controls
                                 className="rounded-lg min-h-[200px]"
                               />
@@ -127,6 +139,16 @@ const CreatePost: React.FC<CreatePostProps> = ({
                         </CarouselItem>
                       </>
                     ))}
+                    {isFileLoading && (
+                      <CarouselItem
+                        className={cn(
+                          "flex items-center",
+                          selectedFile.length > 1 && "basis-5/6"
+                        )}
+                      >
+                        <Skeleton className="w-[350px] h-[250px]" />
+                      </CarouselItem>
+                    )}
                   </CarouselContent>
                 </Carousel>
               </div>
@@ -150,14 +172,15 @@ const CreatePost: React.FC<CreatePostProps> = ({
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            disabled={content.trim().length < 1 && selectedFiles.length < 1}
+          <SubmitBtn
             variant={"outline"}
             className="ml-auto"
             onClick={onPostThread}
-          >
-            Post
-          </Button>
+            isSubmitting={isSubmitting}
+            text="Post"
+            isDisabled={content.trim().length < 1 && selectedFile.length < 1}
+            stroke={1}
+          />
         </CardFooter>
       </Card>
     </>
